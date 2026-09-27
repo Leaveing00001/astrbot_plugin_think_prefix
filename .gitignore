@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# 编辑器 / IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# 运行产物
+*.log
+*.db
+plugin_data/

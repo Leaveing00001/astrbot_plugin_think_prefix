@@ -1,0 +1,111 @@
+{
+  "trigger_prefix": {
+    "type": "string",
+    "description": "触发前缀",
+    "hint": "用户消息以此前缀开头时，为本次 LLM 请求开启模型思考。默认 <think>",
+    "default": "<think>"
+  },
+  "trigger_regex": {
+    "type": "string",
+    "description": "自定义触发正则（高级，留空则用上面的前缀）",
+    "hint": "填写后忽略「触发前缀」。正则需要匹配消息开头的触发标记，例如 ^\\s*(?:/\\s*)?<\\s*think\\s*>\\s*",
+    "default": ""
+  },
+  "case_insensitive": {
+    "type": "bool",
+    "description": "触发标记忽略大小写",
+    "hint": "开启后 <THINK>、<Think> 同样可以触发。",
+    "default": true
+  },
+  "strip_trigger_from_message": {
+    "type": "bool",
+    "description": "发送前删除触发前缀本身",
+    "hint": "开启后模型与对话历史里只会看到 <think> 之后的正文。",
+    "default": true
+  },
+  "enable_native_thinking": {
+    "type": "bool",
+    "description": "开模型原生思考",
+    "hint": "按提供商适配：OpenAI 兼容写 custom_extra_body，Anthropic/Claude 写 thinking 配置，Gemini 写 thinking 配置。",
+    "default": true
+  },
+  "openai_extra_body": {
+    "type": "text",
+    "description": "OpenAI 兼容提供商的思考参数（JSON）",
+    "hint": "通用推荐: {\"reasoning_effort\": \"high\"}。DeepSeek V4 默认已开思考(effort=high)，想拉满写 {\"reasoning_effort\": \"max\"}；需要显式开关的模型用 {\"thinking\": {\"type\": \"enabled\"}}(DeepSeek/GLM/Kimi)、{\"enable_thinking\": true}(Qwen 百炼)、{\"chat_template_kwargs\": {\"enable_thinking\": true}}(vLLM/SGLang)、{\"reasoning\": {\"enabled\": true}}(OpenRouter)。",
+    "default": "{\"reasoning_effort\": \"high\"}"
+  },
+  "anthropic_thinking": {
+    "type": "text",
+    "description": "Anthropic / Claude 的思考配置（JSON）",
+    "hint": "AstrBot 的 anth_thinking_config 结构。{\"type\": \"\", \"budget\": 4096} 表示开启并给出思考预算；{\"type\": \"adaptive\", \"effort\": \"high\"} 表示自适应思考（Claude 4.5+）。",
+    "default": "{\"type\": \"\", \"budget\": 4096, \"effort\": \"\"}"
+  },
+  "gemini_thinking": {
+    "type": "text",
+    "description": "Gemini 的思考配置（JSON）",
+    "hint": "AstrBot 的 gm_thinking_config 结构。Gemini 2.5 用 budget（-1 动态思考，0 关闭）；Gemini 3 用 level（MINIMAL/LOW/MEDIUM/HIGH）。",
+    "default": "{\"budget\": -1, \"level\": \"HIGH\"}"
+  },
+  "thinking_prompt_hint": {
+    "type": "text",
+    "description": "附加思考提示词（可选）",
+    "hint": "会追加到 system prompt。对于没有原生思考开关的模型，可以用它引导模型输出 <think>...</think> 再回答。留空不追加。",
+    "default": ""
+  },
+  "hide_reasoning_display": {
+    "type": "bool",
+    "description": "本轮不展示思考过程",
+    "hint": "触发时给事件打上 enable_reasoning=False，即使 WebUI 开了「展示思考过程」，这一轮也不会把思考另行发出来。只影响发给用户的消息，不影响日志记录。",
+    "default": true
+  },
+  "log_reasoning": {
+    "type": "bool",
+    "description": "把思考过程写进 AstrBot 日志",
+    "hint": "开启后，模型返回的 reasoning_content 会以 [think-prefix] ===== 思考过程开始/结束 ===== 包裹写入日志（INFO 级）。日志级别需为 INFO 或更低。",
+    "default": true
+  },
+  "log_reasoning_max_chars": {
+    "type": "int",
+    "description": "单段思考日志的字符上限",
+    "hint": "超过则截断并注明总字数。填 0 表示不截断。",
+    "default": 3000
+  },
+  "always_strip": {
+    "type": "bool",
+    "description": "始终清理思考内容",
+    "hint": "关闭后只清理带 <think> 前缀触发的那一轮回复。",
+    "default": true
+  },
+  "strip_unclosed": {
+    "type": "bool",
+    "description": "清理未闭合的思考片段",
+    "hint": "有些模型只输出  却没有 </think>，开启后会从该标签起截断。",
+    "default": true
+  },
+  "extra_strip_patterns": {
+    "type": "list",
+    "description": "额外的清理正则",
+    "hint": "每行一个正则（Python re 语法，默认按单行语义匹配，^ $ 匹配行首行尾）。例如 ^思考[:：].*$ ；需要跨行时自己加 (?s)。",
+    "default": []
+  },
+  "tidy_whitespace": {
+    "type": "bool",
+    "description": "清理后折叠多余空行",
+    "hint": "删除思考段落后，把连续 3 个以上换行折叠为 2 个，并去掉首尾空白。",
+    "default": true
+  },
+  "restore_after_response": {
+    "type": "bool",
+    "description": "本轮对话结束后还原提供商配置",
+    "hint": "提供商实例是全局共享的，这里在本轮消息发送完成后立刻还原补丁。关闭后补丁会一直生效，直到插件重载或超时兜底。",
+    "default": true
+  },
+  "log_level": {
+    "type": "string",
+    "description": "日志详细程度",
+    "hint": "normal 只记录关键日志；debug 会额外记录正则清理细节。",
+    "options": ["normal", "debug"],
+    "default": "normal"
+  }
+}

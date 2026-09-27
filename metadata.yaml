@@ -1,0 +1,25 @@
+name: astrbot_plugin_think_prefix
+display_name: "<think> 前缀开启思考"
+short_desc: "<think> 前缀一键开启模型思考，回复里的思考内容自动正则清除"
+desc: |-
+  在消息开头打上 <think>，这一轮就会给模型开原生思考（推理），并把思考过程写进日志；
+  回复发给用户之前再用正则把思考内容删干净，并且默认不把思考单独发到聊天里。
+
+  适配 OpenAI 兼容 / Anthropic Claude / Google Gemini 三类提供商：
+  - OpenAI 兼容（DeepSeek、智谱、硅基流动、vLLM、OpenRouter、OpenAI …）→ 临时写入 custom_extra_body
+  - Anthropic Claude（含 Kimi Coding Plan、小米/MiniMax Token Plan 等衍生适配器）→ 写 thinking 配置
+  - Google Gemini → 写 gm_thinking_config（2.5 用 budget，3 用 level）
+
+  实测于 DeepSeek V4：Responses API 的思考开关是 reasoning.effort（thinking 字段会被忽略），
+  且 V4 默认已开思考，所以插件默认把触发轮的强度拉到 max，配合「提供商默认 reasoning_effort=none」
+  即可实现「平时不思考、只有 <think> 才思考」。
+version: 1.0.0
+author: DeepSeek Harness
+repo: https://github.com/Leaveing00001/astrbot_plugin_think_prefix
+astrbot_version: ">=4.0.0"
+tags:
+  - llm
+  - reasoning
+  - thinking
+  - deepseek
+  - prompt
